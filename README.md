@@ -31,7 +31,7 @@ f_tol::Real = 1e-14
 g_tol::Real = 1e-8
 x_tol::Real = 1e-32
 iterations::Int = 1000 (Csolve algorithm) or 100 (Csminwel algorithm)
-&#948;::Real = 1e-6
-&#945;::Real = 1e-3
+δ::Real = 1e-6
+α::Real = 1e-3
 verbose::Bool = false
 ```
