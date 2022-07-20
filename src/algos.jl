@@ -1,3 +1,5 @@
+# Chris Sims' `csolve` and `csminwel` minimization algorithms
+
 
 
 csolve_messages = Dict{Int, String}(
@@ -22,30 +24,26 @@ csminwel_messages = Dict{Int, String}(
 
 
 """
-    optimize(
-        f::Function,
-        g::Function,
-        x0::AbstractVector,
-        m::Csolve;
-        <keyword arguments>
-    )
+    optimize(f::Function, x0::AbstractVector, m::Csolve; kwargs...)
+    optimize(f::Function, g::Function, x0::AbstractVector, m::Csolve; kwargs...)
 
 solves the linear system `f(x) = 0` using Chris Sims' `csolve` method
 
 # Arguments
-`f::Function`: the objective function to minimize
-`g::Function`: a function that computes the gradient of `f`
-`x0::AbstractVector`: an initial guess for the optimizing input
-`m::Csolve`: an instance of the Csolve structure
+- `f::Function`: the objective function to minimize
+- `g::Function`: a function that computes the gradient of `f`. if this is not provided, the
+    `jacobian` method from the `ForwardDiff` package is used to approximate `g`
+- `x0::AbstractVector`: an initial guess for the optimizing input
+- `m::Csolve`: an instance of the Csolve structure
 
 # Keyword Arguments
-`f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
-`g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
-`x_tol::Real = 1e-32`: tolerance for successive steps of the input
-`iterations::Int = 1000`: maximum number of steps to take
-`δ::Real = 1e-6`: differencing interval for the numerical gradient
-`α::Real = 1e-3`: tolerance on the rate of descent
-`verbose::Bool = false`: print messages to REPL
+- `f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
+- `g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
+- `x_tol::Real = 1e-32`: tolerance for successive steps of the input
+- `iterations::Int = 1000`: maximum number of steps to take
+- `δ::Real = 1e-6`: differencing interval for the numerical gradient
+- `α::Real = 1e-3`: tolerance on the rate of descent
+- `verbose::Bool = false`: print messages to REPL
 """
 function optimize(
     f::Function,
@@ -250,32 +248,56 @@ end
 
 
 """
+    optimize(f::Function, x0::AbstractVector{T}, m::Csminwel; kwargs...) where {T<:Real}
+
+    optimize(
+        f::Function, H0::UniformScaling, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+
+    optimize(
+        f::Function, H0::AbstractMatrix{T}, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+
+    optimize(
+        f::Function, g::Function, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+
+    optimize(
+        f::Function, g::Function, x0::AbstractVector{T}, H0::UniformScaling, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+
     optimize(
         f::Function,
         g::Function,
-        x0::AbstractVector,
-        H0::AbstractMatrix,
+        x0::AbstractVector{T},
+        H0::AbstractMatrix{T},
         m::Csminwel;
-        <keyword arguments>
-    )
+        kwargs...
+    ) where {T<:Real}
 
 solve the equation `f(x) = 0` using Chris Sims' `csminwel` algorithm
 
 # Arguments
-`f::Function`: the objective function to minimize
-`g::Function`: a function that computes the gradient of `f`
-`x0::AbstractVector`: an initial guess for the optimal input
-`H0::AbstractMatrix`: an initial guess for the Hessian matrix
-`m::Csminwel`: an instance of the Csminwel structure
+- `f::Function`: the objective function to minimize
+- `g::Function`: a function that computes the gradient of `f`. if not provided, the
+    `gradient` method from the `ForwardDiff` package is used to approximate `g`
+- `x0::AbstractVector`: an initial guess for the optimal input
+- `H0::AbstractMatrix`: an initial guess for the Hessian matrix. if not provided, it is
+    treated as a UniformScaling with `λ = 1e-5`
+- `m::Csminwel`: an instance of the Csminwel structure
 
 # Keyword Arguments
-`f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
-`g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
-`x_tol::Real = 1e-32`: tolerance for successive steps of the input
-`iterations::Int = 100`: maximum number of steps to take
-`δ::Real = 1e-6`: differencing interval for the numerical gradient
-`α::Real = 1e-3`: tolerance on the rate of descent
-`verbose::Bool = false`: print messages to REPL
+- `f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
+- `g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
+- `x_tol::Real = 1e-32`: tolerance for successive steps of the input
+- `iterations::Int = 100`: maximum number of steps to take
+- `δ::Real = 1e-6`: differencing interval for the numerical gradient
+- `α::Real = 1e-3`: tolerance on the rate of descent
+- `verbose::Bool = false`: print messages to REPL
 """
 function optimize(
     f::Function,
@@ -569,8 +591,14 @@ end
 
 
 
-"""utility functions"""
+#
+# utility functions
+#
 
+"""
+initialization process for the `csminwel` algorithm that is called in each iteration, and
+additionally each time a 'wall' is encounted during the search
+"""
 function csmininit(
     f::Function,
     x0::Vector{T},
@@ -731,12 +759,16 @@ function csmininit(
 end
 
 
-
+"""
+naive checks for well-conditioned Jacobians and gradients
+"""
 bad_grad(A::AbstractMatrix) = any(abs.(A) .> 1e15) ? true : false
 bad_grad(A::AbstractVector) = any(abs.(A) .> 1e15) ? true : false
 
 
-
+"""
+Broyden-Fletcher-Goldfarb-Shanno algorithm update for Hessian matrix
+"""
 function bfgsi(
     B::AbstractMatrix,
     y::AbstractVector,
@@ -761,7 +793,9 @@ function bfgsi(
 end
 
 
-
+"""
+convergence checks on inputs, objective & derivative functions
+"""
 function converged(
     x_t::AbstractVector{T},
     x_tm1::AbstractVector{T},
