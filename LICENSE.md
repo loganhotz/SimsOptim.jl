@@ -1,4 +1,4 @@
-the SimsOptim.jl package is released under the BSD-3 license, albeit without his permission.
+the SimsOptim.jl package is released under the BSD-3 license, mirroring Chris Sims' original publication of his MATLAB functions, albeit without his permission.
 i would prefer to rectify that as soon as possible
 
 Copyright 2022, Chris Sims
