@@ -10,8 +10,9 @@ using Formatting: printfmtln
 import Base: show
 
 export optimize
-export Csolve, Csminwel
-
+export Csolve
+export Csminwel
+export OptimizationResults
 
 
 abstract type SimsOptimMethod end
