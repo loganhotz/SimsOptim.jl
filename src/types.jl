@@ -9,24 +9,24 @@ the results from a `SimsOptim` procedure. each field can be accessed with a non-
 function of the same name; e.g `minimum_x = SimsOptim.minimizer(results)`
 
 # Fields
-- method      ::SimsOptim.SimsOptimMethod
-- iterations  :: Int64
-- converged   :: Bool
-- value       :: Real
-- minimum     :: Tf
-- minimizer   :: Tx
-- initial_x   :: Tx
-- x_converged :: Bool
-- x_change    :: Tx
-- f_converged :: Bool
-- f_change    :: Tf
-- g_converged :: Bool
-- g_size      :: Tg
-- H           :: Union{Nothing, AbstractMatrix}
-- f_calls     :: Int64
-- g_calls     :: Int64
-- flag        :: Int64
-- message     :: AbstractString
+- `method      ::SimsOptimMethod`
+- `iterations  :: Int64`
+- `converged   :: Bool`
+- `value       :: Real`
+- `minimum     :: Tf`
+- `minimizer   :: Tx`
+- `initial_x   :: Tx`
+- `x_converged :: Bool`
+- `x_change    :: Tx`
+- `f_converged :: Bool`
+- `f_change    :: Tf`
+- `g_converged :: Bool`
+- `g_size      :: Tg`
+- `H           :: Union{Nothing, AbstractMatrix}`
+- `f_calls     :: Int64`
+- `g_calls     :: Int64`
+- `flag        :: Int64`
+- `message     :: AbstractString`
 """
 abstract type SimsOptimResults end
 struct OptimizationResults{Tx, Tf, Tg} <: SimsOptimResults
@@ -116,7 +116,7 @@ g_converged(g::AbstractArray{T}, g_tol::T) where {T<:Real} = g_obj(g) < g_tol
 
 function Base.show(io::IO, rs::SimsOptimResults)
 
-    converged(rs) ? (status_string = "success") : "failure"
+    converged(rs) ? (status_string = "success") : (status_string = "failure")
     println("status using $(method(rs)): $status_string")
 
     println("\nconvergence")
