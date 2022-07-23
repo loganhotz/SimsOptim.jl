@@ -27,20 +27,54 @@ csminwel_messages = Dict{Int, String}(
     optimize(f::Function, x0::AbstractVector, m::Csolve; kwargs...)
     optimize(f::Function, g::Function, x0::AbstractVector, m::Csolve; kwargs...)
 
-solves the linear system `f(x) = 0` using Chris Sims' `csolve` method
+    ---
+
+    optimize(f::Function, x0::AbstractVector{T}, m::Csminwel; kwargs...) where {T<:Real}
+    optimize(
+        f::Function, H0::UniformScaling, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+    optimize(
+        f::Function, H0::AbstractMatrix{T}, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+    optimize(
+        f::Function, g::Function, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+    optimize(
+        f::Function, g::Function, H0::UniformScaling, x0::AbstractVector{T}, m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+    optimize(
+        f::Function,
+        g::Function,
+        x0::AbstractVector{T},
+        H0::AbstractMatrix{T},
+        m::Csminwel;
+        kwargs...
+    ) where {T<:Real}
+
+solves the system `f(x) = 0` using Chris Sims' `csolve` method or the scalar equation
+`f(x) = 0` using his `csminwel` procedure
 
 # Arguments
 - `f::Function`: the objective function to minimize
-- `g::Function`: a function that computes the gradient of `f`. if this is not provided, the
-    `jacobian` method from the `ForwardDiff` package is used to approximate `g`
+- `g::Function`: a function that computes the gradient of `f`. if not provided, the
+    `jacobian` or `gradient` method from the `ForwardDiff` package is used to approximate
+    `g`, as appropriate
 - `x0::AbstractVector`: an initial guess for the optimizing input
-- `m::Csolve`: an instance of the Csolve structure
+- `H0::AbstractMatrix`: an initial guess for the Hessian matrix. the Hessian is only used
+    in the `Csminwel` procedure, and if it is not provided, it is treated as a
+    `UniformScaling` with `λ = 1e-5`
+- `m::SimsOptimMethod`: an instance of the `Csolve` or `Csminwel`  structure
 
 # Keyword Arguments
 - `f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
 - `g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
 - `x_tol::Real = 1e-32`: tolerance for successive steps of the input
-- `iterations::Int = 1000`: maximum number of steps to take
+- `iterations::Int`: maximum number of steps to take. when `isa(m, Csolve)`, the default
+    value is 1000, and when `isa(m, Csminwel)`, the default is 100
 - `δ::Real = 1e-6`: differencing interval for the numerical gradient
 - `α::Real = 1e-3`: tolerance on the rate of descent
 - `verbose::Bool = false`: print messages to REPL
@@ -247,58 +281,6 @@ end
 
 
 
-"""
-    optimize(f::Function, x0::AbstractVector{T}, m::Csminwel; kwargs...) where {T<:Real}
-
-    optimize(
-        f::Function, H0::UniformScaling, x0::AbstractVector{T}, m::Csminwel;
-        kwargs...
-    ) where {T<:Real}
-
-    optimize(
-        f::Function, H0::AbstractMatrix{T}, x0::AbstractVector{T}, m::Csminwel;
-        kwargs...
-    ) where {T<:Real}
-
-    optimize(
-        f::Function, g::Function, x0::AbstractVector{T}, m::Csminwel;
-        kwargs...
-    ) where {T<:Real}
-
-    optimize(
-        f::Function, g::Function, x0::AbstractVector{T}, H0::UniformScaling, m::Csminwel;
-        kwargs...
-    ) where {T<:Real}
-
-    optimize(
-        f::Function,
-        g::Function,
-        x0::AbstractVector{T},
-        H0::AbstractMatrix{T},
-        m::Csminwel;
-        kwargs...
-    ) where {T<:Real}
-
-solve the equation `f(x) = 0` using Chris Sims' `csminwel` algorithm
-
-# Arguments
-- `f::Function`: the objective function to minimize
-- `g::Function`: a function that computes the gradient of `f`. if not provided, the
-    `gradient` method from the `ForwardDiff` package is used to approximate `g`
-- `x0::AbstractVector`: an initial guess for the optimal input
-- `H0::AbstractMatrix`: an initial guess for the Hessian matrix. if not provided, it is
-    treated as a UniformScaling with `λ = 1e-5`
-- `m::Csminwel`: an instance of the Csminwel structure
-
-# Keyword Arguments
-- `f_tol::Real = 1e-14`: tolerance for successive evaluations of the objective function
-- `g_tol::Real = 1e-8`: tolerance for norm of objective's gradient
-- `x_tol::Real = 1e-32`: tolerance for successive steps of the input
-- `iterations::Int = 100`: maximum number of steps to take
-- `δ::Real = 1e-6`: differencing interval for the numerical gradient
-- `α::Real = 1e-3`: tolerance on the rate of descent
-- `verbose::Bool = false`: print messages to REPL
-"""
 function optimize(
     f::Function,
     g::Function,
