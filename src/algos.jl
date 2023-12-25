@@ -375,7 +375,7 @@ function optimize(
 
                         else
                             gcliff = ((fx2-fx1) / (norm(x2-x1)^2)) .* (x2 - x1)
-                            eye = Matrix(UniformScaling(1), nx, nx)
+                            eye = Matrix{eltype(x)}(I, nx, nx)
                             
                             fx3, x3, fc, flag3 = csmininit(
                                 f, x, fx, gcliff, false, eye, verbose=verbose
@@ -485,7 +485,7 @@ function optimize(
         x_conv, x0 .- x,
         f_conv, f0 .- fx,
         g_conv, g_obj(gx), H,
-        f_calls, g_calls, flag, csolve_messages[flag]
+        f_calls, g_calls, flag, csminwel_messages[flag]
     )
 
 end
@@ -537,7 +537,6 @@ function optimize(
     g(x) = ForwardDiff.gradient(f, x)
 
     return optimize(f, g, H0, x0, m; kwargs...)
-
 end
 
 
