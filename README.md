@@ -1,26 +1,30 @@
 # SimsOptim.jl
 
-a simple mirror of Chris Sims's `csolve` and `csminwel` optimization functions, originally written in MATLAB, which are available [here](http://sims.princeton.edu/yftp/optimize/).
+A simple mirror of Chris Sims's `csolve` and `csminwel` optimization functions, originally
+written in MATLAB, which are available [here](http://sims.princeton.edu/yftp/optimize/).
 
-the interfaces to the `optimize` function and `OptimizationResults` type are based on the analogous objects in the widely-known [Optim.jl](https://julianlsolvers.github.io/Optim.jl/stable/) package, although `SimsOptim.jl` does not import & re-export `Optim.jl`. future versions of `SimsOptim.jl` might do so, however.
+The interfaces to the `optimize` function and `OptimizationResults` type are based on the
+analogous objects in the widely-known [Optim.jl
+](https://julianlsolvers.github.io/Optim.jl/stable/) package, although `SimsOptim.jl` does
+not import & re-export `Optim.jl`. Future versions of `SimsOptim.jl` might do so, however.
 
 the method signatures of `optimize` are
 ```julia
 optimize(
     f::Function,
     g::Function, [optional]
-    x0::AbstractVector{T},
+    x0::Vector,
     m::Csolve;
     kwargs...
-) where {T}
+)
 ```
 for the multidimensional `Csolve` procedure, and
 ```julia
 optimize(
     f::Function,
     g::Function, [optional]
-    x0::AbstractVector{T},
-    H0::Union{AbstractMatrix{T}, UniformScalint}, [optional]
+    H0::Matrix, [optional]
+    x0::Vector,
     m::Csminwel;
     <keyword arguments>
 )
@@ -37,8 +41,9 @@ iterations::Int = 1000 (Csolve algorithm) or 100 (Csminwel algorithm)
 verbose::Bool = false
 ```
 
-the `ForwardDiff` package's `jacobian` and `gradient` functions are used to approximate `g`
-for the `Csolve` and `Csminwel` algorithms, respectively.
+The `FiniteDifferences.jl` package's `jacobian` and `grad` functions are used to approximate
+`g` for the `Csolve` and `Csminwel` algorithms, respectively. To change the finite-difference
+method settings, use the `set_fdm_settings!` function.
 
 
 
